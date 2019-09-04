@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 # ------------------------------------------------------------------------------
 # Copyright 2019 Mike Pawlowski
 #
@@ -14,35 +16,15 @@
 # limitations under the License.
 # ------------------------------------------------------------------------------
 
-.PHONY: help install lint build
-.DEFAULT: help
+export GITHUB_ACCESS_TOKEN=
+export GITHUB_MILESTONE_DUE_DATE=
+export GITHUB_MILESTONE_NAME=
+export VIRTUAL_ENV_PATH=~/.virtualenvs/github-milestone-generator
 
-define HELP_CONTENT
+printf "\n"
+printf "✔ GITHUB_ACCESS_TOKEN=***\n"
+printf "✔ GITHUB_MILESTONE_DUE_DATE=${GITHUB_MILESTONE_DUE_DATE}\n"
+printf "✔ GITHUB_MILESTONE_NAME=${GITHUB_MILESTONE_NAME}\n"
+printf "\n"
 
-Usage:
-
-make [task [task ...]]
-
-Available Tasks:
-
-- help
-- install
-- lint
-- build
-
-endef
-export HELP_CONTENT
-
-help:
-	@echo "$$HELP_CONTENT"
-
-install:
-	@echo "[install]"
-	python -m pip install -r requirements.txt
-
-lint:
-	@echo "[lint]"
-	python -m pylint index.py
-
-build: lint
-	@echo "[build]"
+. ${VIRTUAL_ENV_PATH}/Scripts/activate

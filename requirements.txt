@@ -16,7 +16,7 @@
 
 # Runtime Dependencies
 
-PyGithub == 1.43.7
+PyGithub == 1.43.8
 
 # Development Dependencies
 

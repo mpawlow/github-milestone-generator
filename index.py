@@ -462,7 +462,13 @@ def _close_overdue_github_milestones(milestones):
     LOGGER.info("Closing overdue GitHub milestones (%s)...", current_time)
 
     for milestone in milestones:
-        if current_time > milestone.due_on:
+
+        due_on = milestone.due_on
+
+        if due_on and \
+           isinstance(due_on, datetime.datetime) and \
+           (current_time > due_on):
+
             status = _close_github_milestone(
                 milestone=milestone)
             if status is True:
