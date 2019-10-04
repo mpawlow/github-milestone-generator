@@ -535,6 +535,22 @@ def _log_github_milestone_error(milestone):
     LOGGER.error(content)
 
 
+def _parse_date_iso_8601(iso_8601_date):
+    """
+    Parse the IS0 8601 date
+    """
+    parsed_date = None
+
+    try:
+        parsed_date = datetime.datetime.strptime(iso_8601_date, ISO_8601_DATE_FORMAT)
+    except ValueError as err:
+        LOGGER.error("Failed to parse ISO 8601 date: %s.", iso_8601_date)
+        _log_exception(err)
+        return None
+
+    return parsed_date
+
+
 def _create_milestone(github_repository, milestone_name, milestone_due_date):
     """
     Create a GitHub milestone using the specified name and due date
@@ -546,26 +562,31 @@ def _create_milestone(github_repository, milestone_name, milestone_due_date):
         "Due Date: {0}.".format(milestone_due_date)
     )
     content = separator.join(string_buffer)
+    due_on = None
 
     LOGGER.info("Creating new GitHub milestone...\n%s", content)
 
     # Parse ISO 8601 date
 
-    try:
-        due_on = datetime.datetime.strptime(milestone_due_date, ISO_8601_DATE_FORMAT)
-    except github.GithubException as err:
-        LOGGER.error("Failed to parse ISO 8601 GitHub milestone due date: %s.", milestone_due_date)
-        _log_exception(err)
-        LOGGER.error("Failed to create GitHub milestone.\n%s", content)
-        return False
+    if milestone_due_date is not None:
+        due_on = _parse_date_iso_8601(milestone_due_date)
+
+        if due_on is None:
+            LOGGER.error("Failed to create GitHub milestone.\n%s", content)
+            return False
 
     # Create GitHub milestone
 
     try:
-        github_repository.create_milestone(
-            milestone_name,
-            state=GITHUB_MILESTONE_STATE_OPEN,
-            due_on=due_on)
+        if due_on:
+            github_repository.create_milestone(
+                milestone_name,
+                state=GITHUB_MILESTONE_STATE_OPEN,
+                due_on=due_on)
+        else:
+            github_repository.create_milestone(
+                milestone_name,
+                state=GITHUB_MILESTONE_STATE_OPEN)
     except github.GithubException as err:
         LOGGER.error("Failed to create GitHub milestone.\n%s", content)
         _log_github_exception(err)
@@ -689,11 +710,12 @@ def _main():
 
     # Milestone Due Date
 
-    status = _validate_milestone_due_date(
-        date=args.milestone_due_date)
+    if args.milestone_due_date is not None:
+        status = _validate_milestone_due_date(
+            date=args.milestone_due_date)
 
-    if status is False:
-        _fatal_exit()
+        if status is False:
+            _fatal_exit()
 
     # GitHub Client
 
